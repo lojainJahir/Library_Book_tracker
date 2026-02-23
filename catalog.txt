@@ -1,0 +1,6 @@
+Adventures in CodeLand:Max Byte:9786666666664:2
+Algorithms for Fun:Jane Q. Programmer:9787777777773:6
+Digital Alchemy:Neo Tech:9783333333337:4
+Effective Java:Joshua Bloch:9780134685991:4
+Mastering Python:Guido van Rossum:9781122334455:3
+The Phantom Function:Ghost Coder:9784444444446:3
