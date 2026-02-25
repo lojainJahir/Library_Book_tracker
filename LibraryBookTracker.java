@@ -9,47 +9,72 @@ public class LibraryBookTracker {
     private static int errorsCount = 0;
 
     public static void main(String[] args) {
-        try {
-            if (args.length < 2) {
-                throw new InsufficientArgumentsException("must be 2 arguments");
-            }
-            String filename = args[0];
-            String operation = args[1];
-
-            if (!filename.endsWith(".txt")) {
-                throw new InvalidFileNameException("the file should end with .txt");
-            }
-
-            File file = new File(filename);
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-
-            List<Book> books = loadCatalog(file);
-
-            if (operation.matches("\\d{13}")) {
-                searchByISBN(books, operation);
-            } else if (operation.contains(":")) {
-                addBook(books, operation, file);
-            } else {
-                searchByTitle(books, operation);
-            }
-
-        } catch (BookCatalogException e) {
-            System.out.println("Error occured: " + e.getMessage());
-            errorsCount++;
-        } catch (Exception e) {
-            System.out.println("Unexpected error.");
-            errorsCount++;
-        } finally {
-            System.out.println("Thank you for using the Library Book Tracker.");
-            System.out.println("\nValid records Found: " + validRecCount);
-            System.out.println("Search results: " + searchResultCount);
-            System.out.println("Total Books added: " + booksaddedCount);
-            System.out.println("Errors occured: " + errorsCount);
+    try {
+        if (args.length < 2) {
+            throw new InsufficientArgumentsException("must be 2 arguments");
         }
+        String filename = args[0];
+        String operation = args[1];
+
+        if (!filename.endsWith(".txt")) {
+            throw new InvalidFileNameException("the file should end with .txt");
+        }
+
+        File file = new File(filename);
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+
+        List<Book> books = new ArrayList<>();
+
+        Thread fileThread = new Thread(() -> {
+            System.out.println("Thread 1: Loading catalog started");
+            books.addAll(loadCatalog(file));
+            System.out.println("Thread 1: Loading catalog finished");
+        });
+
+        Thread opThread = new Thread(() -> {
+            System.out.println("Thread 2: Operation started");
+            try {
+                if (operation.matches("\\d{13}")) {
+                    searchByISBN(books, operation);
+                } else if (operation.contains(":")) {
+                    addBook(books, operation, file);
+                } else {
+                    searchByTitle(books, operation);
+                }
+            } catch (BookCatalogException e) {
+                System.out.println("Error occured: " + e.getMessage());
+                errorsCount++;
+            }
+            System.out.println("Thread 2: Operation finished");
+        });
+
+        fileThread.start();
+        fileThread.join();
+        opThread.start();
+        opThread.join();
+
+    } catch (BookCatalogException e) {
+        System.out.println("Error occured: " + e.getMessage());
+        errorsCount++;
+    } catch (Exception e) {
+        System.out.println("Unexpected error.");
+        errorsCount++;
+    } finally {
+        System.out.println("Thank you for using the Library Book Tracker.");
     }
 
+    System.out.println("\nValid records Found: " + validRecCount);
+    System.out.println("Search results: " + searchResultCount);
+    System.out.println("Total Books added: " + booksaddedCount);
+    System.out.println("Errors occured: " + errorsCount);
+}
+
+
+
+
+    // the book list
     static List<Book> loadCatalog(File file) {
         List<Book> books = new ArrayList<>();
         try {
